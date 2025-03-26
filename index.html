@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RabbitMQ Dashboard with WebSocket</title>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@5.4.0/dist/stomp.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.5.1/dist/sockjs.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f4f6f9;
+      color: #333;
+      margin: 0;
+    }
+    h1 {
+      text-align: center;
+      color: #4caf50; 
+    }
+    .container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+    }
+    .column {
+      background: #fff;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+      width: 45%;
+      max-height: 500px;
+      overflow-y: auto;
+      border: 1px solid #ddd;
+    }
+    .column h2 {
+      text-align: center;
+      color: #2196f3; 
+    }
+  </style>
+</head>
+<body>
+  <h1>RABBITMQ</h1>
+  <div class="container">
+    <div class="column">
+      <h2>Publisher</h2>
+      <div id="publisherLogs"></div>
+    </div>
+    <div class="column">
+      <h2>Consumer</h2>
+      <div id="consumerLogs"></div>
+    </div>
+  </div>
+
+  <script>
+    const socketUrl = "http://localhost:3000/ws"; 
+    const client = new Stomp.Client({
+      brokerURL: socketUrl,
+      connectHeaders: {
+        login: "guest",
+        passcode: "guest",
+      },
+      debug: function(str) {
+        console.log(str);
+      },
+      onConnect: function(frame) {
+        console.log("Connected to WebSocket");
+        client.subscribe("/topic/logs", function(message) {
+          const logs = JSON.parse(message.body);
+          document.getElementById("publisherLogs").innerHTML = logs.publisher.join('<br/>');
+          document.getElementById("consumerLogs").innerHTML = logs.consumer.join('<br/>');
+        });
+      },
+    });
+
+    client.activate(); 
+  </script>
+</body>
+</html>
